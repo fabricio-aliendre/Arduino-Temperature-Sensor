@@ -1,0 +1,38 @@
+import pyfirmata as pf
+from time import sleep
+import matplotlib.pyplot as plt
+from jupyterplot import ProgressPlot
+
+
+board = pf.Arduino("COM3")
+
+it = pf.util.Iterator(board)
+it.start()
+board.analog[0].enable_reporting()
+
+f = open('Temperature Data.csv', 'w')  #w is for overwrite and a is for append
+f.close()
+
+title = "Temperature vs. time"
+x = title.center(80)
+print(x)
+pp = ProgressPlot(x_lim=[0,120], y_lim=[-5,5], x_label = 'Time')
+
+###Using a voltmeter, the resistor measured 0.988 kΩ
+x = []
+y = []
+with open('Excel data.csv', 'w') as f:
+    for i in range(120):
+        sleep(1)                                     ###Sleep function pauses code for 1 second  
+        v = board.analog[0].read()*5
+        ###This is where the equation for T is used
+        current = (3.2405 - v) / 988                 ###Resistor's resistance in Ω
+        r = v / current
+        T = (1/0.00385)*(r/1000 - 1)
+        x.append(i)
+        y.append(T)
+        pp.update(T)
+        f.write(str(i) + '\t' + str(T) +'\n')         
+      
+        
+
